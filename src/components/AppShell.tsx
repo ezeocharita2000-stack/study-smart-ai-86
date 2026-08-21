@@ -64,7 +64,7 @@ export function AppShell({
         <div className="rounded-2xl bg-soft-gradient p-4">
           <p className="font-display text-sm font-semibold">Free plan</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {student.studyStreakNote ?? "3 of 5 daily AI lessons used today."}
+            3 of 5 daily AI lessons used today.
           </p>
           <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-background">
             <div className="h-full w-3/5 rounded-full bg-primary" />
