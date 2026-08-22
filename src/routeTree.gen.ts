@@ -13,8 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as LearnRouteImport } from './routes/learn'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ProgressRouteImport } from './routes/progress'
 import { Route as QuizRouteImport } from './routes/quiz'
+import { Route as QuizResultsRouteImport } from './routes/quiz-results'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as StudyPlanRouteImport } from './routes/study-plan'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -36,14 +40,34 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgressRoute = ProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QuizRoute = QuizRouteImport.update({
   id: '/quiz',
   path: '/quiz',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QuizResultsRoute = QuizResultsRouteImport.update({
+  id: '/quiz-results',
+  path: '/quiz-results',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudyPlanRoute = StudyPlanRouteImport.update({
+  id: '/study-plan',
+  path: '/study-plan',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -52,16 +76,24 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
+  '/progress': typeof ProgressRoute
   '/quiz': typeof QuizRoute
+  '/quiz-results': typeof QuizResultsRoute
   '/signup': typeof SignupRoute
+  '/study-plan': typeof StudyPlanRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
+  '/progress': typeof ProgressRoute
   '/quiz': typeof QuizRoute
+  '/quiz-results': typeof QuizResultsRoute
   '/signup': typeof SignupRoute
+  '/study-plan': typeof StudyPlanRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,16 +101,50 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
+  '/progress': typeof ProgressRoute
   '/quiz': typeof QuizRoute
+  '/quiz-results': typeof QuizResultsRoute
   '/signup': typeof SignupRoute
+  '/study-plan': typeof StudyPlanRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/learn' | '/login' | '/quiz' | '/signup'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/learn'
+    | '/login'
+    | '/profile'
+    | '/progress'
+    | '/quiz'
+    | '/quiz-results'
+    | '/signup'
+    | '/study-plan'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/learn' | '/login' | '/quiz' | '/signup'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/learn'
+    | '/login'
+    | '/profile'
+    | '/progress'
+    | '/quiz'
+    | '/quiz-results'
+    | '/signup'
+    | '/study-plan'
   id:
-    '__root__' | '/' | '/dashboard' | '/learn' | '/login' | '/quiz' | '/signup'
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/learn'
+    | '/login'
+    | '/profile'
+    | '/progress'
+    | '/quiz'
+    | '/quiz-results'
+    | '/signup'
+    | '/study-plan'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -86,8 +152,12 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   LearnRoute: typeof LearnRoute
   LoginRoute: typeof LoginRoute
+  ProfileRoute: typeof ProfileRoute
+  ProgressRoute: typeof ProgressRoute
   QuizRoute: typeof QuizRoute
+  QuizResultsRoute: typeof QuizResultsRoute
   SignupRoute: typeof SignupRoute
+  StudyPlanRoute: typeof StudyPlanRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -120,6 +190,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/progress': {
+      id: '/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof ProgressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/quiz': {
       id: '/quiz'
       path: '/quiz'
@@ -127,11 +211,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QuizRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/quiz-results': {
+      id: '/quiz-results'
+      path: '/quiz-results'
+      fullPath: '/quiz-results'
+      preLoaderRoute: typeof QuizResultsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/study-plan': {
+      id: '/study-plan'
+      path: '/study-plan'
+      fullPath: '/study-plan'
+      preLoaderRoute: typeof StudyPlanRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -142,8 +240,12 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   LearnRoute: LearnRoute,
   LoginRoute: LoginRoute,
+  ProfileRoute: ProfileRoute,
+  ProgressRoute: ProgressRoute,
   QuizRoute: QuizRoute,
+  QuizResultsRoute: QuizResultsRoute,
   SignupRoute: SignupRoute,
+  StudyPlanRoute: StudyPlanRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
