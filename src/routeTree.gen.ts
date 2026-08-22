@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as LearnRouteImport } from './routes/learn'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ProgressRouteImport } from './routes/progress'
 import { Route as QuizRouteImport } from './routes/quiz'
 import { Route as QuizResultsRouteImport } from './routes/quiz-results'
 import { Route as SignupRouteImport } from './routes/signup'
@@ -36,6 +38,16 @@ const LearnRoute = LearnRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgressRoute = ProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QuizRoute = QuizRouteImport.update({
@@ -64,6 +76,8 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
+  '/progress': typeof ProgressRoute
   '/quiz': typeof QuizRoute
   '/quiz-results': typeof QuizResultsRoute
   '/signup': typeof SignupRoute
@@ -74,6 +88,8 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
+  '/progress': typeof ProgressRoute
   '/quiz': typeof QuizRoute
   '/quiz-results': typeof QuizResultsRoute
   '/signup': typeof SignupRoute
@@ -85,6 +101,8 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/learn': typeof LearnRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
+  '/progress': typeof ProgressRoute
   '/quiz': typeof QuizRoute
   '/quiz-results': typeof QuizResultsRoute
   '/signup': typeof SignupRoute
@@ -97,6 +115,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/learn'
     | '/login'
+    | '/profile'
+    | '/progress'
     | '/quiz'
     | '/quiz-results'
     | '/signup'
@@ -107,6 +127,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/learn'
     | '/login'
+    | '/profile'
+    | '/progress'
     | '/quiz'
     | '/quiz-results'
     | '/signup'
@@ -117,6 +139,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/learn'
     | '/login'
+    | '/profile'
+    | '/progress'
     | '/quiz'
     | '/quiz-results'
     | '/signup'
@@ -128,6 +152,8 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   LearnRoute: typeof LearnRoute
   LoginRoute: typeof LoginRoute
+  ProfileRoute: typeof ProfileRoute
+  ProgressRoute: typeof ProgressRoute
   QuizRoute: typeof QuizRoute
   QuizResultsRoute: typeof QuizResultsRoute
   SignupRoute: typeof SignupRoute
@@ -162,6 +188,20 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/progress': {
+      id: '/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof ProgressRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quiz': {
@@ -200,6 +240,8 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   LearnRoute: LearnRoute,
   LoginRoute: LoginRoute,
+  ProfileRoute: ProfileRoute,
+  ProgressRoute: ProgressRoute,
   QuizRoute: QuizRoute,
   QuizResultsRoute: QuizResultsRoute,
   SignupRoute: SignupRoute,
