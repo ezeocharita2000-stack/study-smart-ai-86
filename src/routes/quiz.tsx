@@ -28,7 +28,7 @@ function QuizPage() {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitting, setSubmitting] = useState(false);
 
-  const q = quizQuestions[index];
+  const q = quizQuestions[index]!;
   const answered = Object.keys(answers).length;
   const progress = Math.round((answered / quizQuestions.length) * 100);
 
