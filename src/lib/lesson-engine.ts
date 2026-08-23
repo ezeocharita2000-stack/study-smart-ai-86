@@ -171,6 +171,6 @@ export async function applyTutorAction(
 
   return {
     ...current,
-    examples: [...current.examples, EXTRA_EXAMPLES[round % EXTRA_EXAMPLES.length]],
+    examples: [...current.examples, EXTRA_EXAMPLES[round % EXTRA_EXAMPLES.length] ?? EXTRA_EXAMPLES[0]!],
   };
 }
