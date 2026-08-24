@@ -1,13 +1,21 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { ChevronLeft, ChevronRight, Clock, Flag, Loader2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { quizQuestions } from "@/lib/mock-data";
+import { encodeAnswers, generateQuizQuestions } from "@/lib/quiz-engine";
 import { cn } from "@/lib/utils";
 
+const searchSchema = z.object({
+  topic: fallback(z.string(), "Photosynthesis").default("Photosynthesis"),
+  subject: fallback(z.string(), "Biology").default("Biology"),
+});
+
 export const Route = createFileRoute("/quiz")({
+  validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
       { title: "Practice Quiz — StudySmart AI" },
@@ -23,27 +31,33 @@ export const Route = createFileRoute("/quiz")({
 });
 
 function QuizPage() {
+  const { topic, subject } = Route.useSearch();
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitting, setSubmitting] = useState(false);
 
-  const q = quizQuestions[index]!;
+  const questions = useMemo(() => generateQuizQuestions(topic, subject), [topic, subject]);
+  const q = questions[Math.min(index, questions.length - 1)]!;
   const answered = Object.keys(answers).length;
-  const progress = Math.round((answered / quizQuestions.length) * 100);
+  const progress = Math.round((answered / questions.length) * 100);
 
   function submit() {
     setSubmitting(true);
-    setTimeout(() => navigate({ to: "/quiz-results" }), 900);
+    const encoded = encodeAnswers(questions, answers);
+    setTimeout(
+      () => navigate({ to: "/quiz-results", search: { topic, subject, answers: encoded } }),
+      900,
+    );
   }
 
   return (
-    <AppShell title="Photosynthesis Quiz" subtitle="Biology · SS2 · 8 questions">
+    <AppShell title={`${topic} Quiz`} subtitle={`${subject} · ${questions.length} questions`}>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
         <div className="rounded-2xl border bg-card p-5 shadow-card sm:p-6">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
             <p className="truncate text-sm font-semibold text-muted-foreground">
-              Question {index + 1} of {quizQuestions.length}
+              Question {index + 1} of {questions.length}
             </p>
             <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-warning-soft px-3 py-1 text-xs font-semibold text-warning">
               <Clock className="h-3.5 w-3.5" /> 07:42
@@ -91,7 +105,7 @@ function QuizPage() {
             >
               <ChevronLeft className="mr-1 h-4 w-4" /> Previous
             </Button>
-            {index === quizQuestions.length - 1 ? (
+            {index === questions.length - 1 ? (
               <Button onClick={submit} disabled={submitting}>
                 {submitting ? (
                   <>
@@ -104,13 +118,13 @@ function QuizPage() {
                 )}
               </Button>
             ) : (
-              <Button onClick={() => setIndex((i) => Math.min(quizQuestions.length - 1, i + 1))}>
+              <Button onClick={() => setIndex((i) => Math.min(questions.length - 1, i + 1))}>
                 Next <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             )}
           </div>
           <p className="mt-3 text-center text-xs text-muted-foreground sm:text-left">
-            {answered} of {quizQuestions.length} answered. You can go back and change any answer before
+            {answered} of {questions.length} answered. You can go back and change any answer before
             submitting.
           </p>
         </div>
@@ -119,7 +133,7 @@ function QuizPage() {
           <div className="rounded-2xl border bg-card p-5 shadow-card">
             <p className="font-display text-sm font-semibold">Question navigator</p>
             <div className="mt-3 grid grid-cols-6 gap-2 lg:grid-cols-4">
-              {quizQuestions.map((qq, i) => {
+              {questions.map((qq, i) => {
                 const done = answers[qq.id] !== undefined;
                 return (
                   <button
@@ -146,7 +160,7 @@ function QuizPage() {
           <div className="rounded-2xl bg-soft-gradient p-5">
             <p className="font-display text-sm font-semibold">Need a refresher?</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Re-read the Photosynthesis lesson before you submit.
+              Re-read the {topic} lesson before you submit.
             </p>
             <Button asChild size="sm" variant="secondary" className="mt-3 w-full">
               <Link to="/learn">Open lesson</Link>
