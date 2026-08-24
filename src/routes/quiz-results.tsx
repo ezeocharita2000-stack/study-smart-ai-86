@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import {
   CheckCircle2,
   XCircle,
@@ -15,10 +17,17 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { quizResult, quizQuestions } from "@/lib/mock-data";
+import { decodeAnswers, generateQuizQuestions, markQuiz } from "@/lib/quiz-engine";
 import { cn } from "@/lib/utils";
 
+const searchSchema = z.object({
+  topic: fallback(z.string(), "Photosynthesis").default("Photosynthesis"),
+  subject: fallback(z.string(), "Biology").default("Biology"),
+  answers: fallback(z.string(), "").default(""),
+});
+
 export const Route = createFileRoute("/quiz-results")({
+  validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
       { title: "Quiz Results — StudySmart AI" },
@@ -34,37 +43,43 @@ export const Route = createFileRoute("/quiz-results")({
   component: ResultsPage,
 });
 
-// Which sample answers were wrong, for the review view.
-const wrongIds = [4, 7];
-
 function ResultsPage() {
+  const { topic, subject, answers: encoded } = Route.useSearch();
   const [review, setReview] = useState(false);
 
+  const questions = useMemo(() => generateQuizQuestions(topic, subject), [topic, subject]);
+  const given = useMemo(() => decodeAnswers(questions, encoded), [questions, encoded]);
+  const result = useMemo(
+    () => markQuiz(questions, given, topic, subject, "Chiamaka"),
+    [questions, given, topic, subject],
+  );
+
   return (
-    <AppShell title="Quiz Results" subtitle="Biology · Photosynthesis · 8 questions">
+    <AppShell title="Quiz Results" subtitle={`${subject} · ${topic} · ${result.total} questions`}>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
         <div className="space-y-5">
           <div className="grid gap-4 rounded-2xl bg-hero-gradient p-6 text-primary-foreground shadow-lift sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
             <div className="grid h-28 w-28 shrink-0 place-items-center rounded-full border-8 border-background/20">
               <div className="text-center">
-                <p className="font-display text-3xl font-extrabold">{quizResult.score}%</p>
+                <p className="font-display text-3xl font-extrabold">{result.score}%</p>
                 <p className="text-[10px] uppercase tracking-wide text-primary-foreground/80">Score</p>
               </div>
             </div>
             <div className="min-w-0">
-              <h2 className="font-display text-2xl font-bold">Good job, Chiamaka!</h2>
+              <h2 className="font-display text-2xl font-bold">
+                {result.score >= 70 ? "Good job, Chiamaka!" : "Keep going, Chiamaka!"}
+              </h2>
               <p className="mt-1 text-sm text-primary-foreground/85">
-                You answered {quizResult.correct} of {quizResult.total} questions correctly in{" "}
-                {quizResult.timeTaken}. That is 9% above your Biology average.
+                You answered {result.correct} of {result.total} questions on {topic} correctly.
               </p>
               <div className="mt-4 grid grid-cols-3 gap-3">
                 <div className="rounded-xl bg-background/12 p-3">
                   <p className="text-xs text-primary-foreground/75">Correct</p>
-                  <p className="font-display text-lg font-bold">{quizResult.correct}</p>
+                  <p className="font-display text-lg font-bold">{result.correct}</p>
                 </div>
                 <div className="rounded-xl bg-background/12 p-3">
                   <p className="text-xs text-primary-foreground/75">Incorrect</p>
-                  <p className="font-display text-lg font-bold">{quizResult.incorrect}</p>
+                  <p className="font-display text-lg font-bold">{result.incorrect}</p>
                 </div>
                 <div className="rounded-xl bg-background/12 p-3">
                   <p className="text-xs text-primary-foreground/75">Time</p>
@@ -81,7 +96,7 @@ function ResultsPage() {
                 <h3 className="font-display text-base font-semibold">Strong areas</h3>
               </div>
               <ul className="mt-3 space-y-2">
-                {quizResult.strong.map((s) => (
+                {result.strong.map((s) => (
                   <li
                     key={s}
                     className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-xl bg-success-soft px-3 py-2 text-sm font-medium"
@@ -98,7 +113,7 @@ function ResultsPage() {
                 <h3 className="font-display text-base font-semibold">Weak areas</h3>
               </div>
               <ul className="mt-3 space-y-2">
-                {quizResult.weak.map((s) => (
+                {result.weak.map((s) => (
                   <li
                     key={s}
                     className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-xl bg-warning-soft px-3 py-2 text-sm font-medium"
@@ -116,7 +131,7 @@ function ResultsPage() {
               <Sparkles className="h-4.5 w-4.5 text-primary" />
               <h3 className="font-display text-lg font-semibold">AI feedback</h3>
             </div>
-            <p className="mt-3 text-sm leading-relaxed">{quizResult.feedback}</p>
+            <p className="mt-3 text-sm leading-relaxed">{result.feedback}</p>
           </div>
 
           <div className="rounded-2xl border bg-card p-5 shadow-card">
@@ -128,8 +143,8 @@ function ResultsPage() {
             </div>
             {review ? (
               <ul className="mt-4 space-y-3">
-                {quizQuestions.map((q, i) => {
-                  const wrong = wrongIds.includes(q.id);
+                {questions.map((q, i) => {
+                  const wrong = given[q.id] !== q.answer;
                   return (
                     <li key={q.id} className="rounded-xl border p-4">
                       <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
@@ -142,12 +157,13 @@ function ResultsPage() {
                           <p className="text-sm font-semibold">
                             {i + 1}. {q.question}
                           </p>
-                          <p
-                            className={cn(
-                              "mt-2 text-sm",
-                              wrong ? "text-destructive" : "text-success",
-                            )}
-                          >
+                          {wrong ? (
+                            <p className="mt-2 text-sm text-muted-foreground">
+                              Your answer:{" "}
+                              {given[q.id] === undefined ? "Not answered" : q.options[given[q.id]!]}
+                            </p>
+                          ) : null}
+                          <p className={cn("mt-1 text-sm", wrong ? "text-destructive" : "text-success")}>
                             Correct answer: {q.options[q.answer]}
                           </p>
                           <p className="mt-1 text-sm text-muted-foreground">{q.explanation}</p>
@@ -169,7 +185,7 @@ function ResultsPage() {
           <div className="rounded-2xl border bg-card p-5 shadow-card">
             <h3 className="font-display text-base font-semibold">Recommended revision</h3>
             <ul className="mt-3 space-y-3">
-              {quizResult.revision.map((r) => (
+              {result.revision.map((r) => (
                 <li key={r.title} className="rounded-xl border p-3">
                   <p className="text-sm font-semibold">{r.title}</p>
                   <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -188,7 +204,7 @@ function ResultsPage() {
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to="/quiz">
+              <Link to="/quiz" search={{ topic, subject }}>
                 <RotateCcw className="mr-1.5 h-4 w-4" /> Try Again
               </Link>
             </Button>
