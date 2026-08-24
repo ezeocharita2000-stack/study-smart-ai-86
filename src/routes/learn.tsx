@@ -245,7 +245,7 @@ function LearnPage() {
                   ) : null}
                 </div>
                 <Button asChild variant="secondary" size="sm" className="shrink-0 font-semibold">
-                  <Link to="/quiz">
+                  <Link to="/quiz" search={{ topic: lesson.topic, subject: lesson.subject }}>
                     <ClipboardList className="mr-1.5 h-4 w-4" /> Test me
                   </Link>
                 </Button>
@@ -266,7 +266,7 @@ function LearnPage() {
                     </Button>
                   ))}
                   <Button asChild size="sm">
-                    <Link to="/quiz">
+                    <Link to="/quiz" search={{ topic: lesson.topic, subject: lesson.subject }}>
                       <ClipboardList className="mr-1.5 h-4 w-4" /> Test Me
                     </Link>
                   </Button>
