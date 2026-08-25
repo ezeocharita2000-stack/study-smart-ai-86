@@ -6,12 +6,13 @@ import { ChevronLeft, ChevronRight, Clock, Flag, Loader2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { encodeAnswers, generateQuizQuestions } from "@/lib/quiz-engine";
+import { encodeAnswers, generateQuiz } from "@/lib/quiz-engine";
 import { cn } from "@/lib/utils";
 
 const searchSchema = z.object({
   topic: fallback(z.string(), "Photosynthesis").default("Photosynthesis"),
   subject: fallback(z.string(), "Biology").default("Biology"),
+  difficulty: fallback(z.string(), "Intermediate").default("Intermediate"),
 });
 
 export const Route = createFileRoute("/quiz")({
@@ -31,13 +32,13 @@ export const Route = createFileRoute("/quiz")({
 });
 
 function QuizPage() {
-  const { topic, subject } = Route.useSearch();
+  const { topic, subject, difficulty } = Route.useSearch();
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitting, setSubmitting] = useState(false);
 
-  const questions = useMemo(() => generateQuizQuestions(topic, subject), [topic, subject]);
+  const questions = useMemo(() => generateQuiz({ topic, subject, difficulty }), [topic, subject, difficulty]);
   const q = questions[Math.min(index, questions.length - 1)]!;
   const answered = Object.keys(answers).length;
   const progress = Math.round((answered / questions.length) * 100);
@@ -46,7 +47,7 @@ function QuizPage() {
     setSubmitting(true);
     const encoded = encodeAnswers(questions, answers);
     setTimeout(
-      () => navigate({ to: "/quiz-results", search: { topic, subject, answers: encoded } }),
+      () => navigate({ to: "/quiz-results", search: { topic, subject, difficulty, answers: encoded } }),
       900,
     );
   }

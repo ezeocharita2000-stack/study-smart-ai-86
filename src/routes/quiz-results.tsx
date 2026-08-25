@@ -17,12 +17,13 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { decodeAnswers, generateQuizQuestions, markQuiz } from "@/lib/quiz-engine";
+import { decodeAnswers, generateQuiz, markQuiz } from "@/lib/quiz-engine";
 import { cn } from "@/lib/utils";
 
 const searchSchema = z.object({
   topic: fallback(z.string(), "Photosynthesis").default("Photosynthesis"),
   subject: fallback(z.string(), "Biology").default("Biology"),
+  difficulty: fallback(z.string(), "Intermediate").default("Intermediate"),
   answers: fallback(z.string(), "").default(""),
 });
 
@@ -44,10 +45,10 @@ export const Route = createFileRoute("/quiz-results")({
 });
 
 function ResultsPage() {
-  const { topic, subject, answers: encoded } = Route.useSearch();
+  const { topic, subject, difficulty, answers: encoded } = Route.useSearch();
   const [review, setReview] = useState(false);
 
-  const questions = useMemo(() => generateQuizQuestions(topic, subject), [topic, subject]);
+  const questions = useMemo(() => generateQuiz({ topic, subject, difficulty }), [topic, subject, difficulty]);
   const given = useMemo(() => decodeAnswers(questions, encoded), [questions, encoded]);
   const result = useMemo(
     () => markQuiz(questions, given, topic, subject, "Chiamaka"),

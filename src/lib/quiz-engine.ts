@@ -293,3 +293,20 @@ export function decodeAnswers(questions: QuizQuestion[], encoded: string): Recor
   });
   return out;
 }
+
+/**
+ * Preferred entry point, mirroring the lesson-engine signature so it can be
+ * swapped for a real AI quiz API later.
+ */
+export function generateQuiz({
+  topic,
+  subject = "General",
+  difficulty = "Intermediate",
+}: {
+  topic: string;
+  subject?: string;
+  difficulty?: string;
+}): QuizQuestion[] {
+  void difficulty;
+  return generateQuizQuestions(topic, subject);
+}
