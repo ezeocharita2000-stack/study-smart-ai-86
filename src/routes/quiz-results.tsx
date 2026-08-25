@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import {
@@ -18,7 +18,14 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { decodeAnswers, generateQuiz, markQuiz } from "@/lib/quiz-engine";
+import { categorise, saveQuizResult } from "@/lib/quiz-history";
 import { cn } from "@/lib/utils";
+
+const categoryStyles: Record<string, string> = {
+  Strong: "bg-success-soft text-success",
+  Improving: "bg-warning-soft text-warning",
+  "Needs Revision": "bg-destructive/10 text-destructive",
+};
 
 const searchSchema = z.object({
   topic: fallback(z.string(), "Photosynthesis").default("Photosynthesis"),
@@ -55,6 +62,25 @@ function ResultsPage() {
     [questions, given, topic, subject],
   );
 
+  const category = categorise(result.score);
+  const wrongQuestions = questions.filter((q) => given[q.id] !== q.answer);
+
+  useEffect(() => {
+    saveQuizResult({
+      topic,
+      subject,
+      difficulty,
+      score: result.score,
+      correct: result.correct,
+      incorrect: result.incorrect,
+      total: result.total,
+      category,
+      weak: result.weak,
+    });
+    // save once per completed quiz result
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topic, subject, difficulty, encoded]);
+
   return (
     <AppShell title="Quiz Results" subtitle={`${subject} · ${topic} · ${result.total} questions`}>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
@@ -63,17 +89,33 @@ function ResultsPage() {
             <div className="grid h-28 w-28 shrink-0 place-items-center rounded-full border-8 border-background/20">
               <div className="text-center">
                 <p className="font-display text-3xl font-extrabold">{result.score}%</p>
-                <p className="text-[10px] uppercase tracking-wide text-primary-foreground/80">Score</p>
+                <p className="font-display text-sm font-semibold text-primary-foreground/90">
+                  {result.correct}/{result.total}
+                </p>
               </div>
             </div>
             <div className="min-w-0">
               <h2 className="font-display text-2xl font-bold">
-                {result.score >= 70 ? "Good job, Chiamaka!" : "Keep going, Chiamaka!"}
+                {topic} — {result.score}%
               </h2>
-              <p className="mt-1 text-sm text-primary-foreground/85">
-                You answered {result.correct} of {result.total} questions on {topic} correctly.
-              </p>
-              <div className="mt-4 grid grid-cols-3 gap-3">
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span
+                  className={cn(
+                    "rounded-full px-3 py-1 text-xs font-semibold",
+                    categoryStyles[category],
+                  )}
+                >
+                  {category}
+                </span>
+                <span className="text-sm text-primary-foreground/85">
+                  {result.correct}/{result.total} correct
+                </span>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="rounded-xl bg-background/12 p-3">
+                  <p className="text-xs text-primary-foreground/75">Overall score</p>
+                  <p className="font-display text-lg font-bold">{result.score}%</p>
+                </div>
                 <div className="rounded-xl bg-background/12 p-3">
                   <p className="text-xs text-primary-foreground/75">Correct</p>
                   <p className="font-display text-lg font-bold">{result.correct}</p>
@@ -83,12 +125,39 @@ function ResultsPage() {
                   <p className="font-display text-lg font-bold">{result.incorrect}</p>
                 </div>
                 <div className="rounded-xl bg-background/12 p-3">
-                  <p className="text-xs text-primary-foreground/75">Time</p>
-                  <p className="font-display text-lg font-bold">7:42</p>
+                  <p className="text-xs text-primary-foreground/75">Total questions</p>
+                  <p className="font-display text-lg font-bold">{result.total}</p>
                 </div>
               </div>
             </div>
           </div>
+
+          {wrongQuestions.length > 0 ? (
+            <div className="rounded-2xl border border-warning/40 bg-warning-soft/50 p-5 shadow-card">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4.5 w-4.5 text-warning" />
+                <h3 className="font-display text-lg font-semibold">Needs improvement</h3>
+              </div>
+              <ul className="mt-3 space-y-2">
+                {wrongQuestions.map((q, i) => (
+                  <li key={q.id} className="rounded-xl bg-card p-3 text-sm">
+                    <p className="font-semibold">
+                      {i + 1}. {q.question}
+                    </p>
+                    <p className="mt-1 text-muted-foreground">
+                      You chose:{" "}
+                      {given[q.id] === undefined ? "Not answered" : q.options[given[q.id]!]}
+                    </p>
+                    <p className="text-success">Correct: {q.options[q.answer]}</p>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-sm font-medium">
+                Recommendation: review {topic} and try another test.
+              </p>
+            </div>
+          ) : null}
+
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-2xl border bg-card p-5 shadow-card">
