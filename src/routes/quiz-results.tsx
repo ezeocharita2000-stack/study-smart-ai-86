@@ -18,7 +18,14 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { decodeAnswers, generateQuiz, markQuiz } from "@/lib/quiz-engine";
+import { categorise, saveQuizResult } from "@/lib/quiz-history";
 import { cn } from "@/lib/utils";
+
+const categoryStyles: Record<string, string> = {
+  Strong: "bg-success-soft text-success",
+  Improving: "bg-warning-soft text-warning",
+  "Needs Revision": "bg-destructive/10 text-destructive",
+};
 
 const searchSchema = z.object({
   topic: fallback(z.string(), "Photosynthesis").default("Photosynthesis"),
